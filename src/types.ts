@@ -21,6 +21,11 @@ export interface OrderLine {
  * doesn't accept.
  */
 export function generateOrderLines(rng: Random, count: number, uomPool: readonly string[] = UOM_CODES): OrderLine[] {
+  // Shuffled once per document, then assigned round-robin — guarantees no two
+  // lines share a description as long as count <= the pool size (10), instead
+  // of independently sampling with replacement and risking duplicates on
+  // small line counts, which undercut the "realistic data" promise.
+  const descriptions = rng.shuffled(PRODUCT_DESCRIPTIONS);
   const lines: OrderLine[] = [];
   for (let lineNumber = 1; lineNumber <= count; lineNumber++) {
     lines.push({
@@ -29,7 +34,7 @@ export function generateOrderLines(rng: Random, count: number, uomPool: readonly
       uom: rng.pick(uomPool.length > 0 ? uomPool : UOM_CODES),
       price: rng.crooked(1.1, 249.99, 2),
       partNumber: `${rng.pick(PART_NUMBER_PREFIXES)}-${rng.digits(5)}`,
-      description: rng.pick(PRODUCT_DESCRIPTIONS),
+      description: descriptions[(lineNumber - 1) % descriptions.length] as string,
     });
   }
   return lines;

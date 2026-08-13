@@ -7,7 +7,7 @@ import { buildAck855 } from "./documents/ack855.js";
 import { buildAsn856 } from "./documents/asn856.js";
 import { buildInvoice810 } from "./documents/invoice810.js";
 import { buildFa997, targetFrom } from "./documents/fa997.js";
-import { serialize, type EdiDocument } from "./model.js";
+import { recomputeSegmentCount, serialize, type EdiDocument } from "./model.js";
 import type { PartnerProfile } from "./envelope.js";
 
 export interface OrderToInvoiceOptions {
@@ -105,12 +105,15 @@ export function orderToInvoice(options: OrderToInvoiceOptions): ScenarioBuilder 
       let bundle: ScenarioBundle = { po: poDoc, ack: ackDoc, asn: asnDoc, invoice: invoiceDoc, fa: faDoc };
       for (const fault of scenarioFaults) bundle = fault(bundle);
 
+      // Same reasoning as DocBuilder.buildDocument(): if a scenario fault ever
+      // changes a document's segment count, SE01 must stay honest unless that
+      // document specifically opted out (faults.seCountWrong()).
       return {
-        po: serialize(bundle.po),
-        ack: serialize(bundle.ack),
-        asn: serialize(bundle.asn),
-        invoice: serialize(bundle.invoice),
-        fa: bundle.fa ? serialize(bundle.fa) : null,
+        po: serialize(recomputeSegmentCount(bundle.po)),
+        ack: serialize(recomputeSegmentCount(bundle.ack)),
+        asn: serialize(recomputeSegmentCount(bundle.asn)),
+        invoice: serialize(recomputeSegmentCount(bundle.invoice)),
+        fa: bundle.fa ? serialize(recomputeSegmentCount(bundle.fa)) : null,
       };
     },
   };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { po850, asn856, faults, scenario } from "../src/index.js";
-import { findSegment, findSegments, segmentsOf } from "./helpers.js";
+import { actualSegmentCount, findSegment, findSegments, segmentsOf } from "./helpers.js";
 
 describe("faults catalog", () => {
   it("exposes exactly the 18 documented faults", () => {
@@ -40,6 +40,9 @@ describe("category A — structure/envelope", () => {
     const clean = po850({ seed: 1, lines: 3 }).build();
     const broken = po850({ seed: 1, lines: 3 }).with(faults.seCountWrong()).build();
     expect(findSegment(broken, "SE")![1]).not.toBe(findSegment(clean, "SE")![1]);
+    // It's the only fault allowed to do this — the actual count is untouched,
+    // and SE01 must land at exactly actual + offset, not just "some wrong value".
+    expect(Number(findSegment(broken, "SE")![1])).toBe(actualSegmentCount(broken) + 1);
   });
 
   it("controlNumberMismatch makes ST02 != SE02", () => {
@@ -97,6 +100,27 @@ describe("category B — semantics/content", () => {
     const broken = po850({ seed: 1 }).with(faults.missingRef("DP")).build();
     expect(findSegments(clean, "REF").some((r) => r[1] === "DP")).toBe(true);
     expect(findSegments(broken, "REF").some((r) => r[1] === "DP")).toBe(false);
+  });
+
+  it("missingRef keeps SE01 honest — removing a segment must not also, silently, break the count", () => {
+    // Regression test: missingRef() must isolate to exactly one fault (a
+    // missing REF). If SE01 goes stale it's indistinguishable from also having
+    // applied seCountWrong(), which defeats the fault catalog's isolation.
+    const broken = po850({ seed: 42, lines: 2 }).with(faults.missingRef("DP")).build();
+    expect(Number(findSegment(broken, "SE")![1])).toBe(actualSegmentCount(broken));
+    expect(actualSegmentCount(broken)).toBe(12); // one less than the 13-segment clean baseline
+  });
+
+  it("seCountWrong always wins when composed after a count-changing fault: it offsets from SE01 as it stands at that point, not the final count", () => {
+    // missingRef() itself never rewrites SE01 (only the final, once-only
+    // recompute does, and seCountWrong() opts out of that). So at the moment
+    // seCountWrong() runs, SE01 still reads the pre-missingRef value (13),
+    // and it adds its offset on top of that: 13 + 1 = 14, against an actual
+    // (post-missingRef) count of 12 — a documented, order-dependent quirk of
+    // deliberately stacking two count-related faults, not a bug in either one.
+    const broken = po850({ seed: 42, lines: 2 }).with(faults.missingRef("DP")).with(faults.seCountWrong()).build();
+    expect(actualSegmentCount(broken)).toBe(12);
+    expect(Number(findSegment(broken, "SE")![1])).toBe(14);
   });
 });
 

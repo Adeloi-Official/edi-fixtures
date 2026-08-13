@@ -55,6 +55,12 @@ describe("po850", () => {
     expect(findSegment(doc, "CTT")![1]).toBe("6");
   });
 
+  it("never repeats a PID description across lines, as long as line count doesn't exceed the description pool", () => {
+    const doc = po850({ seed: 42, lines: 6 }).build();
+    const descriptions = findSegments(doc, "PID").map((pid) => pid[5]);
+    expect(new Set(descriptions).size).toBe(descriptions.length);
+  });
+
   it("respects an explicit poNumber", () => {
     const doc = po850({ seed: 1, poNumber: "PO999999" }).build();
     expect(findSegment(doc, "BEG")![3]).toBe("PO999999");

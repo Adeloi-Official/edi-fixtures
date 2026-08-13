@@ -71,4 +71,14 @@ export class Random {
     const factor = 10 ** decimals;
     return Math.round(raw * factor) / factor;
   }
+
+  /** A deterministic Fisher-Yates shuffle — a fresh, reordered array, original left untouched. */
+  shuffled<T>(items: readonly T[]): T[] {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = this.int(0, i);
+      [arr[i], arr[j]] = [arr[j] as T, arr[i] as T];
+    }
+    return arr;
+  }
 }

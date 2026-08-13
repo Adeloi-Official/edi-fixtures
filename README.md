@@ -28,23 +28,23 @@ po850({ seed: 42, lines: 2 }).build();
 ```
 
 ```
-ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240411*1919*U*00401*051209267*0*P*:~
-GS*PO*SENDERID*RECEIVERID*20240411*1002*592324*X*004010~
+ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240404*0538*U*00401*530335606*0*P*:~
+GS*PO*SENDERID*RECEIVERID*20240404*0518*27124*X*004010~
 ST*850*0001~
-BEG*00*NE*PO031538**20240411~
-REF*DP*186~
-DTM*002*20240414~
-N1*ST*Harbor Point Logistics*92*LOC5018~
-N3*4928 Industrial Pkwy~
-N4*Fort Worth*TX*76102~
-PO1*1*290*CS*213.27*PE*BP*AX-15268~
-PID*F****Cable Tie 8in Black Bag/100~
-PO1*2*122*FT*186.71*PE*BP*PN-15660~
-PID*F****Cable Tie 8in Black Bag/100~
+BEG*00*NE*PO173006**20240404~
+REF*DP*809~
+DTM*002*20240412~
+N1*ST*Vantage Supply Co*92*LOC4005~
+N3*6007 Industrial Pkwy~
+N4*Ontario*CA*91761~
+PO1*1*228*EA*220.64*PE*BP*AX-31566~
+PID*F****Hex Bolt 3/8-16 x 2in Zinc~
+PO1*2*5*CS*209.50*PE*BP*SKU-50201~
+PID*F****Shop Towel Roll Blue~
 CTT*2~
 SE*13*0001~
-GE*1*592324~
-IEA*1*051209267~
+GE*1*27124~
+IEA*1*530335606~
 ```
 
 Now the same seed with two faults from the catalog applied:
@@ -57,31 +57,34 @@ po850({ seed: 42, lines: 2 })
 ```
 
 ```diff
- ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240411*1919*U*00401*051209267*0*P*:~
- GS*PO*SENDERID*RECEIVERID*20240411*1002*592324*X*004010~
+ ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240404*0538*U*00401*530335606*0*P*:~
+ GS*PO*SENDERID*RECEIVERID*20240404*0518*27124*X*004010~
  ST*850*0001~
- BEG*00*NE*PO031538**20240411~
--REF*DP*186~
- DTM*002*20240414~
- N1*ST*Harbor Point Logistics*92*LOC5018~
- N3*4928 Industrial Pkwy~
- N4*Fort Worth*TX*76102~
--PO1*1*290*CS*213.27*PE*BP*AX-15268~
-+PO1*1*290*CASE*213.27*PE*BP*AX-15268~
- PID*F****Cable Tie 8in Black Bag/100~
--PO1*2*122*FT*186.71*PE*BP*PN-15660~
-+PO1*2*122*FEET*186.71*PE*BP*PN-15660~
- PID*F****Cable Tie 8in Black Bag/100~
+ BEG*00*NE*PO173006**20240404~
+-REF*DP*809~
+ DTM*002*20240412~
+ N1*ST*Vantage Supply Co*92*LOC4005~
+ N3*6007 Industrial Pkwy~
+ N4*Ontario*CA*91761~
+-PO1*1*228*EA*220.64*PE*BP*AX-31566~
++PO1*1*228*EACH*220.64*PE*BP*AX-31566~
+ PID*F****Hex Bolt 3/8-16 x 2in Zinc~
+-PO1*2*5*CS*209.50*PE*BP*SKU-50201~
++PO1*2*5*CASE*209.50*PE*BP*SKU-50201~
+ PID*F****Shop Towel Roll Blue~
  CTT*2~
- SE*13*0001~
- GE*1*592324~
- IEA*1*051209267~
+-SE*13*0001~
++SE*12*0001~
+ GE*1*27124~
+ IEA*1*530335606~
 ```
 
 Same envelope, same control numbers, same line data — just the department
-REF gone and two UOM codes swapped for the nonstandard synonyms partners
-actually send. That's the whole idea: a document that's wrong in one
-specific, realistic way instead of unrecognizable.
+REF gone (and SE01 correctly recounted to 12, not left stale at 13 — removing
+a segment is only ever *that* fault, never an accidental second one) and two
+UOM codes swapped for the nonstandard synonyms partners actually send.
+That's the whole idea: a document that's wrong in one specific, realistic
+way instead of unrecognizable.
 
 ## Contents
 

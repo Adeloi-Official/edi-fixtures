@@ -16,4 +16,12 @@ export function findSegments(edi: string, tag: string): string[][] {
   return segmentsOf(edi).filter((s) => s[0] === tag);
 }
 
+/** The real number of segments from ST to SE, inclusive — what SE01 is supposed to equal. */
+export function actualSegmentCount(edi: string): number {
+  const segments = segmentsOf(edi);
+  const stIndex = segments.findIndex((s) => s[0] === "ST");
+  const seIndex = segments.findIndex((s) => s[0] === "SE");
+  return seIndex - stIndex + 1;
+}
+
 export type ParsedInterchange = X12Interchange;

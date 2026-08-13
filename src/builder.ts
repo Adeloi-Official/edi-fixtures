@@ -1,4 +1,4 @@
-import { serialize, type EdiDocument, type Fault } from "./model.js";
+import { recomputeSegmentCount, serialize, type EdiDocument, type Fault } from "./model.js";
 
 export interface DocBuilder {
   /** Queues a fault to apply, in order, after the base document is generated. Returns `this` for chaining. */
@@ -26,7 +26,7 @@ export function createBuilder(generate: () => EdiDocument): DocBuilder {
     buildDocument() {
       let doc = generate();
       for (const fault of faults) doc = fault(doc);
-      return doc;
+      return recomputeSegmentCount(doc);
     },
     build() {
       return serialize(api.buildDocument());

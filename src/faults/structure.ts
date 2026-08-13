@@ -25,6 +25,10 @@ export function seCountWrong(offset = 1): Fault {
     const d = cloneDocument(doc);
     const se = findSegment(d, "SE");
     if (se && se[1]) se[1] = String(Number(se[1]) + offset);
+    // Opts this document out of the builder's automatic SE01 recompute — this
+    // fault's entire point is a deliberately wrong count, and it must be the
+    // only fault capable of producing one. See recomputeSegmentCount() in model.ts.
+    d.meta.seCountOverride = true;
     return d;
   };
 }
