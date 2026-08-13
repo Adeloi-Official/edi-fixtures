@@ -1,0 +1,56 @@
+{
+  "name": "@adeloi/edi-fixtures",
+  "version": "1.0.0",
+  "description": "Realistic X12 EDI test documents for integration testing — including the ways they break in production.",
+  "keywords": [
+    "edi",
+    "x12",
+    "testing",
+    "fixtures",
+    "supply-chain",
+    "850",
+    "856",
+    "810",
+    "997"
+  ],
+  "homepage": "https://github.com/adeloi/edi-fixtures",
+  "bugs": "https://github.com/adeloi/edi-fixtures/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adeloi/edi-fixtures.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Olevis LLC",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "node-x12": "^1.7.1",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
+  }
+}
