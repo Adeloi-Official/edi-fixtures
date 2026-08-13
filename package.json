@@ -13,11 +13,11 @@
     "810",
     "997"
   ],
-  "homepage": "https://github.com/adeloi/edi-fixtures",
-  "bugs": "https://github.com/adeloi/edi-fixtures/issues",
+  "homepage": "https://github.com/Adeloi-Official/edi-fixtures",
+  "bugs": "https://github.com/Adeloi-Official/edi-fixtures/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adeloi/edi-fixtures.git"
+    "url": "git+https://github.com/Adeloi-Official/edi-fixtures.git"
   },
   "license": "Apache-2.0",
   "author": "Olevis LLC",

@@ -13,7 +13,7 @@ loops, 997s that never arrive.
 Built by [Adeloi](https://adeloi.com), an engineering partner for industrial
 suppliers and manufacturers.
 
-[![CI](https://github.com/adeloi/edi-fixtures/actions/workflows/ci.yml/badge.svg)](https://github.com/adeloi/edi-fixtures/actions/workflows/ci.yml)
+[![CI](https://github.com/Adeloi-Official/edi-fixtures/actions/workflows/ci.yml/badge.svg)](https://github.com/Adeloi-Official/edi-fixtures/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/%40adeloi%2Fedi-fixtures)](https://www.npmjs.com/package/@adeloi/edi-fixtures)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
 
