@@ -60,7 +60,7 @@ export function orderToInvoice(options: OrderToInvoiceOptions): ScenarioBuilder 
     },
     build() {
       const rootRng = new Random(options.seed);
-      const lines = generateOrderLines(rootRng, options.lines ?? 3);
+      const lines = generateOrderLines(rootRng, options.lines ?? 3, options.partner?.uomWhitelist);
       const poNumber = `PO${padLeft(String(rootRng.int(1, 999_999)), 6)}`;
 
       const poBuilt = buildPo850(new Random(options.seed + 1), { poNumber, lines, partner: options.partner });
@@ -96,7 +96,7 @@ export function orderToInvoice(options: OrderToInvoiceOptions): ScenarioBuilder 
 
       // The 997 acknowledges the 850: the seller's system confirming receipt of the PO, same day it arrives.
       const faBuilt = buildFa997(new Random(options.seed + 5), {
-        target: targetFrom("850", "850", poDoc.meta.controlNumbers),
+        target: targetFrom("850", poDoc.meta.controlNumbers),
         partner: options.partner,
         referenceDate: poBuilt.date,
       });

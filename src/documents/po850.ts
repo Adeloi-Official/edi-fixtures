@@ -1,7 +1,7 @@
 import { Random } from "../random.js";
 import { padLeft, money2 } from "../format.js";
 import { formatDateCCYYMMDD } from "../dates.js";
-import { buildEnvelope, defaultPartner, type PartnerProfile } from "../envelope.js";
+import { buildEnvelope, buildRequiredRefSegments, type PartnerProfile } from "../envelope.js";
 import { createBuilder, type DocBuilder } from "../builder.js";
 import type { EdiDocument, Segment } from "../model.js";
 import { CITY_STATE, COMPANY_NAMES } from "../data.js";
@@ -38,7 +38,7 @@ export function buildPo850(
 
   const segments: Segment[] = [
     ["BEG", "00", "NE", poNumber, "", formatDateCCYYMMDD(envelope.date)],
-    ["REF", "DP", padLeft(String(rng.int(1, 999)), 3)],
+    ...buildRequiredRefSegments(rng, opts.partner),
     ["DTM", "002", formatDateCCYYMMDD(requestedShipDate)],
     ["N1", "ST", rng.pick(COMPANY_NAMES), "92", `LOC${rng.digits(4)}`],
     ["N3", `${rng.int(100, 9999)} Industrial Pkwy`],
@@ -57,7 +57,7 @@ export function buildPo850(
 export function po850(options: Po850Options): DocBuilder {
   return createBuilder(() => {
     const rng = new Random(options.seed);
-    const lines = generateOrderLines(rng, options.lines ?? 3);
+    const lines = generateOrderLines(rng, options.lines ?? 3, options.partner?.uomWhitelist);
     const built = buildPo850(rng, {
       poNumber: options.poNumber,
       lines,

@@ -26,7 +26,7 @@ describe("scenario.orderToInvoice", () => {
     const asnParts = findSegments(flow.asn, "LIN");
 
     for (let i = 0; i < poLines.length; i++) {
-      const [, , qty, uom, price, , , partNumber] = poLines[i]!;
+      const [, , qty, uom, , , , partNumber] = poLines[i]!;
       expect(ackLines[i]!.slice(1)).toEqual(poLines[i]!.slice(1));
       expect(invLines[i]!.slice(1)).toEqual(poLines[i]!.slice(1));
       expect(asnLines[i]!.slice(2)).toEqual([qty, uom]);

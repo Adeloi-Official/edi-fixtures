@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { po850, ack855, asn856, invoice810, faults, scenario } from "../src/index.js";
+import { po850, asn856, faults, scenario } from "../src/index.js";
 import { findSegment, findSegments, segmentsOf } from "./helpers.js";
 
 describe("faults catalog", () => {
@@ -122,6 +122,41 @@ describe("category D — 856-specific document faults", () => {
     const bsnDate = findSegment(doc, "BSN")![3]!;
     const deliveryDate = segmentsOf(doc).find((s) => s[0] === "DTM" && s[1] === "017")![2]!;
     expect(bsnDate > deliveryDate).toBe(true);
+  });
+
+  it("asnAfterDelivery is independent of the host machine's timezone", () => {
+    // Regression test: an earlier implementation parsed the delivery date with
+    // `new Date(y, m, d)` (local time) and re-formatted it with UTC getters —
+    // correct only by accident in UTC-based CI, and silently wrong (off by a
+    // day) on a machine east of UTC. This must produce the same output no
+    // matter what TZ the process runs under, or determinism is broken.
+    const originalTz = process.env.TZ;
+    try {
+      process.env.TZ = "UTC";
+      const utcResult = asn856({ seed: 1 }).with(faults.asnAfterDelivery()).build();
+
+      process.env.TZ = "Pacific/Kiritimati"; // UTC+14 — the most extreme zone that exists
+      const farEastResult = asn856({ seed: 1 }).with(faults.asnAfterDelivery()).build();
+
+      process.env.TZ = "Etc/GMT+12"; // UTC-12 — the most extreme negative offset
+      const farWestResult = asn856({ seed: 1 }).with(faults.asnAfterDelivery()).build();
+
+      expect(farEastResult).toBe(utcResult);
+      expect(farWestResult).toBe(utcResult);
+    } finally {
+      if (originalTz === undefined) delete process.env.TZ;
+      else process.env.TZ = originalTz;
+    }
+  });
+
+  it("asnAfterDelivery is a no-op when composed after a fault that's already reshaped the DTM date", () => {
+    // Regression test: dateFormatShort() shortens DTM*017 from 8-char CCYYMMDD to
+    // 6-char YYMMDD. asnAfterDelivery() must recognize it can no longer trust the
+    // date's shape and skip, rather than slicing garbage into a nonsense date —
+    // faults are documented as safe to compose in any order.
+    const clean = asn856({ seed: 1 }).with(faults.dateFormatShort()).build();
+    const composed = asn856({ seed: 1 }).with(faults.dateFormatShort()).with(faults.asnAfterDelivery()).build();
+    expect(composed).toBe(clean);
   });
 });
 

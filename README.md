@@ -21,14 +21,88 @@ suppliers and manufacturers.
 
 ---
 
+### See it in action
+
+```ts
+po850({ seed: 42, lines: 2 }).build();
+```
+
+```
+ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240411*1919*U*00401*051209267*0*P*:~
+GS*PO*SENDERID*RECEIVERID*20240411*1002*592324*X*004010~
+ST*850*0001~
+BEG*00*NE*PO031538**20240411~
+REF*DP*186~
+DTM*002*20240414~
+N1*ST*Harbor Point Logistics*92*LOC5018~
+N3*4928 Industrial Pkwy~
+N4*Fort Worth*TX*76102~
+PO1*1*290*CS*213.27*PE*BP*AX-15268~
+PID*F****Cable Tie 8in Black Bag/100~
+PO1*2*122*FT*186.71*PE*BP*PN-15660~
+PID*F****Cable Tie 8in Black Bag/100~
+CTT*2~
+SE*13*0001~
+GE*1*592324~
+IEA*1*051209267~
+```
+
+Now the same seed with two faults from the catalog applied:
+
+```ts
+po850({ seed: 42, lines: 2 })
+  .with(faults.uomNonstandard())
+  .with(faults.missingRef("DP"))
+  .build();
+```
+
+```diff
+ ISA*00*          *00*          *ZZ*SENDERID       *ZZ*RECEIVERID     *240411*1919*U*00401*051209267*0*P*:~
+ GS*PO*SENDERID*RECEIVERID*20240411*1002*592324*X*004010~
+ ST*850*0001~
+ BEG*00*NE*PO031538**20240411~
+-REF*DP*186~
+ DTM*002*20240414~
+ N1*ST*Harbor Point Logistics*92*LOC5018~
+ N3*4928 Industrial Pkwy~
+ N4*Fort Worth*TX*76102~
+-PO1*1*290*CS*213.27*PE*BP*AX-15268~
++PO1*1*290*CASE*213.27*PE*BP*AX-15268~
+ PID*F****Cable Tie 8in Black Bag/100~
+-PO1*2*122*FT*186.71*PE*BP*PN-15660~
++PO1*2*122*FEET*186.71*PE*BP*PN-15660~
+ PID*F****Cable Tie 8in Black Bag/100~
+ CTT*2~
+ SE*13*0001~
+ GE*1*592324~
+ IEA*1*051209267~
+```
+
+Same envelope, same control numbers, same line data — just the department
+REF gone and two UOM codes swapped for the nonstandard synonyms partners
+actually send. That's the whole idea: a document that's wrong in one
+specific, realistic way instead of unrecognizable.
+
+## Contents
+
+- [Install](#install)
+- [Quickstart](#quickstart)
+- [What this is](#what-this-is)
+- [What this is NOT](#what-this-is-not)
+- [Document types](#document-types)
+- [The fault catalog](#the-fault-catalog)
+- [API](#api)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Install
 
 ```sh
 npm install --save-dev @adeloi/edi-fixtures
 ```
 
-Zero runtime dependencies. Works in Node, Bun, Deno, and the browser — it's
-pure string generation in, string out.
+Zero runtime dependencies. Works in Node ≥20, Bun, Deno, and the browser —
+it's pure string generation in, string out.
 
 ## Quickstart
 

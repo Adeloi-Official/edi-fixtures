@@ -1,5 +1,5 @@
 import { Random } from "../random.js";
-import { buildEnvelope, type PartnerProfile } from "../envelope.js";
+import { buildEnvelope, FUNCTIONAL_GROUP, type PartnerProfile } from "../envelope.js";
 import { createBuilder, type DocBuilder } from "../builder.js";
 import type { ControlNumbers, EdiDocument, Segment } from "../model.js";
 
@@ -45,11 +45,15 @@ export function buildFa997(
   return { segments, date: envelope.date, wrap: envelope.wrap };
 }
 
-/** Builds a `Fa997Target` from the control numbers of a document this 997 is acknowledging. */
-export function targetFrom(docType: string, transactionSetId: string, controlNumbers: ControlNumbers): Fa997Target {
-  const functionalIdByDocType: Record<string, string> = { "850": "PO", "855": "PR", "856": "SH", "810": "IN" };
+/**
+ * Builds a `Fa997Target` from the control numbers of a document this 997 is
+ * acknowledging. `transactionSetId` is the document's own ST01 (e.g. "850") —
+ * its GS01 functional ID is looked up from the same table `buildEnvelope`
+ * uses, so the two can never drift apart.
+ */
+export function targetFrom(transactionSetId: string, controlNumbers: ControlNumbers): Fa997Target {
   return {
-    functionalIdCode: functionalIdByDocType[docType] ?? "PO",
+    functionalIdCode: FUNCTIONAL_GROUP[transactionSetId] ?? "PO",
     groupControlNumber: controlNumbers.group,
     transactionSetId,
     transactionSetControlNumber: controlNumbers.transaction,

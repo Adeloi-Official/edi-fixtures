@@ -1,4 +1,5 @@
 import { Random } from "../random.js";
+import { padLeft } from "../format.js";
 import { formatDateCCYYMMDD, formatTimeHHMM } from "../dates.js";
 import { buildEnvelope, type PartnerProfile } from "../envelope.js";
 import { createBuilder, type DocBuilder } from "../builder.js";
@@ -75,8 +76,8 @@ export function buildAsn856(
 export function asn856(options: Asn856Options): DocBuilder {
   return createBuilder(() => {
     const rng = new Random(options.seed);
-    const lines = generateOrderLines(rng, options.lines ?? 3);
-    const poNumber = options.poNumber ?? `PO${String(rng.int(1, 999_999)).padStart(6, "0")}`;
+    const lines = generateOrderLines(rng, options.lines ?? 3, options.partner?.uomWhitelist);
+    const poNumber = options.poNumber ?? `PO${padLeft(String(rng.int(1, 999_999)), 6)}`;
     const built = buildAsn856(rng, {
       poNumber,
       lines,

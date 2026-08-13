@@ -12,7 +12,12 @@ import type { EdiDocument, Segment, Separators } from "./model.js";
  * or Grainger's spec.
  */
 export interface PartnerProfile {
+  /** Default ISA05/ISA07 qualifier, used for both sender and receiver unless overridden below. */
   isaQualifier: string;
+  /** Overrides `isaQualifier` for ISA05 only — for partners whose sender and receiver use different ID schemes (e.g. "ZZ" mutually-defined vs "01" DUNS). */
+  senderQualifier?: string;
+  /** Overrides `isaQualifier` for ISA07 only. */
+  receiverQualifier?: string;
   senderId: string;
   receiverId: string;
   requiredRefs?: string[];
@@ -29,6 +34,17 @@ export const defaultPartner: PartnerProfile = {
 
 export function definePartner(overrides: Partial<PartnerProfile>): PartnerProfile {
   return { ...defaultPartner, ...overrides };
+}
+
+/**
+ * One REF segment per qualifier the partner requires (`"DP"` — Department
+ * Number — if the partner doesn't specify anything more particular). This is
+ * what `faults.missingRef(qualifier)` removes to simulate a partner-required
+ * reference going missing.
+ */
+export function buildRequiredRefSegments(rng: Random, partner: PartnerProfile | undefined): Segment[] {
+  const qualifiers = partner?.requiredRefs ?? ["DP"];
+  return qualifiers.map((qualifier): Segment => ["REF", qualifier, padLeft(String(rng.int(1, 999)), 3)]);
 }
 
 /** Functional Identifier Codes (GS01) for the document types this library generates. */
@@ -72,9 +88,9 @@ export function buildEnvelope(opts: EnvelopeOptions): EnvelopeResult {
       padRight("", 10),
       "00",
       padRight("", 10),
-      partner.isaQualifier,
+      partner.senderQualifier ?? partner.isaQualifier,
       padRight(partner.senderId, 15),
-      partner.isaQualifier,
+      partner.receiverQualifier ?? partner.isaQualifier,
       padRight(partner.receiverId, 15),
       formatDateYYMMDD(date),
       formatTimeHHMM(opts.rng),
@@ -88,8 +104,11 @@ export function buildEnvelope(opts: EnvelopeOptions): EnvelopeResult {
     const gs: Segment = [
       "GS",
       functionalId as string,
-      partner.senderId,
-      partner.receiverId,
+      // Truncated to the same 15 chars as ISA06/ISA08 (padRight above) so both segments
+      // of one interchange agree on the sender/receiver identity — GS02/GS03 are
+      // variable-length so they're truncated without ISA's trailing-space padding.
+      partner.senderId.slice(0, 15),
+      partner.receiverId.slice(0, 15),
       formatDateCCYYMMDD(date),
       formatTimeHHMM(opts.rng),
       groupControl,

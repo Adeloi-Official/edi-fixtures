@@ -1,7 +1,7 @@
 import { Random } from "../random.js";
 import { padLeft, money2 } from "../format.js";
 import { formatDateCCYYMMDD } from "../dates.js";
-import { buildEnvelope, type PartnerProfile } from "../envelope.js";
+import { buildEnvelope, buildRequiredRefSegments, type PartnerProfile } from "../envelope.js";
 import { createBuilder, type DocBuilder } from "../builder.js";
 import type { EdiDocument, Segment } from "../model.js";
 import { COMPANY_NAMES } from "../data.js";
@@ -33,7 +33,7 @@ export function buildAck855(
   const segments: Segment[] = [
     // BAK02 "AC" = Acknowledge - With Detail, Change. Every line is accepted as ordered in the happy path.
     ["BAK", "00", "AC", opts.poNumber, "", formatDateCCYYMMDD(envelope.date)],
-    ["REF", "DP", padLeft(String(rng.int(1, 999)), 3)],
+    ...buildRequiredRefSegments(rng, opts.partner),
     ["N1", "ST", rng.pick(COMPANY_NAMES), "92", `LOC${rng.digits(4)}`],
     ...opts.lines.flatMap((l): Segment[] => [
       ["PO1", String(l.lineNumber), String(l.quantity), l.uom, money2(l.price), "PE", "BP", l.partNumber],
@@ -50,7 +50,7 @@ export function buildAck855(
 export function ack855(options: Ack855Options): DocBuilder {
   return createBuilder(() => {
     const rng = new Random(options.seed);
-    const lines = generateOrderLines(rng, options.lines ?? 3);
+    const lines = generateOrderLines(rng, options.lines ?? 3, options.partner?.uomWhitelist);
     const poNumber = options.poNumber ?? `PO${padLeft(String(rng.int(1, 999_999)), 6)}`;
     const built = buildAck855(rng, {
       poNumber,

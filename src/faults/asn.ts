@@ -42,11 +42,20 @@ export function asnAfterDelivery(): Fault {
     const d = cloneDocument(doc);
     const bsn = findSegment(d, "BSN");
     const deliveryDtm = d.segments.find((seg) => seg[0] === "DTM" && seg[1] === "017");
-    if (bsn && bsn[3] && deliveryDtm && deliveryDtm[2]) {
+    // The length check matters for composability: faults.dateFormatShort() shortens
+    // DTM dates to 6-char YYMMDD, and if this fault ran after that without checking,
+    // slicing a 6-char string as if it were 8-char CCYYMMDD silently produces a
+    // nonsense date instead of erroring or no-oping. Faults must stay safe in any order.
+    if (bsn && bsn[3] && deliveryDtm && deliveryDtm[2] && deliveryDtm[2].length === 8) {
+      // Date.UTC, not `new Date(y, m, d)` — the latter reads as local time and would
+      // make this fault's output depend on the machine's timezone, breaking the one
+      // guarantee this whole library exists to make. See docs/design.md.
       const deliveryDate = new Date(
-        Number(deliveryDtm[2].slice(0, 4)),
-        Number(deliveryDtm[2].slice(4, 6)) - 1,
-        Number(deliveryDtm[2].slice(6, 8)),
+        Date.UTC(
+          Number(deliveryDtm[2].slice(0, 4)),
+          Number(deliveryDtm[2].slice(4, 6)) - 1,
+          Number(deliveryDtm[2].slice(6, 8)),
+        ),
       );
       const lateDate = addDays(deliveryDate, 5);
       bsn[3] = formatDateCCYYMMDD(lateDate);
