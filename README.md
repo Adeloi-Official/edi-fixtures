@@ -167,9 +167,12 @@ document.
 
 ## What this is NOT
 
-- **Not a parser or validator.** This library only generates documents. For
-  parsing/validating incoming X12, see [node-x12](https://github.com/aaronhuggins/node-x12)
-  or the [Stedi](https://www.stedi.com/) EDI ecosystem.
+- **Not a parser or validator.** This library only generates documents. To
+  diagnose X12 that is already wrong — including every fault in the catalog
+  below — see [`x12-doctor`](https://github.com/Adeloi-Official/x12-doctor),
+  the sister project this one is tested against. For general parsing, see
+  [node-x12](https://github.com/aaronhuggins/node-x12) or the
+  [Stedi](https://www.stedi.com/) EDI ecosystem.
 - **Not a mapper or translator.**
 - **Not a source of trading-partner implementation guides.** Guides for
   specific partners (Walmart, Grainger, etc.) are proprietary. `definePartner()`
@@ -212,6 +215,29 @@ Faults in categories A, B, and most of D operate on a single document via
 document (or the absence of one) to mean anything, so they apply to a
 `scenario.orderToInvoice(...)` chain instead. See
 [`docs/faults.md`](./docs/faults.md) for the full writeup of each one.
+
+### The other half
+
+Each of these 18 faults maps to exactly one diagnosis in
+[`x12-doctor`](https://github.com/Adeloi-Official/x12-doctor), which reads a
+broken document and says what is wrong with it in plain English. The two
+projects share one taxonomy: this library generates the broken document, that
+one diagnoses it.
+
+That correspondence is a contract, not a convention. x12-doctor's CI rebuilds
+this library from source and regenerates its test corpus, so changing a fault
+here fails the build there rather than silently degrading detection.
+
+Useful together in a test: generate a document broken one specific way, then
+assert your pipeline notices.
+
+```ts
+const broken = po850({ seed: 42 }).with(faults.uomNonstandard()).build();
+```
+
+```sh
+x12doctor check broken.edi   # → B01, nonstandard unit of measure
+```
 
 ## API
 
